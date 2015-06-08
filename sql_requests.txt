@@ -1,0 +1,33 @@
+Запрос #1
+
+SELECT student_id, SUM( amount ) 
+FROM  `payments` 
+GROUP BY student_id
+ORDER BY SUM( amount ) DESC 
+LIMIT 1 , 1
+
+Запрос #2
+set @num := 0, @type := '';
+SELECT * 
+FROM (
+SELECT student_id, 
+STATUS , DATETIME, @num := IF( @type = student_id, @num +1, 1 ) AS row_number, @type := student_id AS dummy
+FROM student_status
+ORDER BY DATETIME DESC
+) AS x, student
+WHERE x.row_number =1
+AND STATUS =  'vacation'
+AND student.id = student_id
+AND gender =  'unknown'
+
+Запрос #3
+set @num := 0, @type := '';
+SELECT * 
+FROM 
+(SELECT student_id as student_id,COUNT(*) as num FROM `payments` WHERE amount<>0 GROUP BY student_id) as X,
+(SELECT student_id FROM (
+      SELECT student_id, STATUS , DATETIME, @num := IF( @type = student_id, @num +1, 1 ) AS row_number, @type := student_id AS dummy
+      FROM student_status
+      ORDER BY DATETIME DESC
+		) AS Y	WHERE Y.row_number =1 AND status='lost') AS Z,student 
+WHERE X.num>2 AND Z.student_id = X.student_id AND Z.student_id = student.id# Строки: 1
